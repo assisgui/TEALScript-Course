@@ -6,10 +6,11 @@
     "generate-client": "algokitgen generate -a contracts/artifacts/TealscriptDemo.arc32.json -o contracts/clients/TealscriptDemoClient.ts",
     "compile-contract": "tealscript contracts/tealscript-demo.algo.ts contracts/artifacts",
     "generate-components": "algokit-generate-component contracts/artifacts/TealscriptDemo.arc32.json contracts/artifacts/components",
-    "build": "npm run compile-contract && npm run generate-client",
-    "test": "npm run build && jest",
+    "build": "yarn compile-contract && yarn generate-client",
+    "test": "yarn build:bin && jest",
     "lint": "eslint . --ext .ts",
-    "fix": "eslint . --ext .ts --fix"
+    "fix": "eslint . --ext .ts --fix",
+    "build:bin": "./bin/build-contracts.sh"
   },
   "dependencies": {
     "@algorandfoundation/algokit-utils": "^2.2.0",
@@ -22,6 +23,7 @@
     "@joe-p/algokit-generate-component": "^0.2.0",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.0.0",
+    "cross-fetch": "^4.0.0",
     "eslint": "^7.32.0 || ^8.2.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-airbnb-typescript": "^17.0.0",

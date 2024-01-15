@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeAll, beforeEach } from '@jest/globals';
 import { algorandFixture } from '@algorandfoundation/algokit-utils/testing';
-import { TealscriptDemoClient } from '../contracts/clients/TealscriptDemoClient';
+import { TealscriptDemoClient } from '../contracts/clients/TealscriptDemo';
 
 const fixture = algorandFixture();
 
