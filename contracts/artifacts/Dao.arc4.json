@@ -3,6 +3,18 @@
   "desc": "",
   "methods": [
     {
+      "name": "createApplication",
+      "args": [
+        {
+          "name": "proposal",
+          "type": "string"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
       "name": "getProposal",
       "args": [],
       "returns": {
@@ -10,10 +22,22 @@
       }
     },
     {
-      "name": "createApplication",
-      "args": [],
+      "name": "vote",
+      "args": [
+        {
+          "name": "inFavor",
+          "type": "bool"
+        }
+      ],
       "returns": {
         "type": "void"
+      }
+    },
+    {
+      "name": "getVotesTotal",
+      "args": [],
+      "returns": {
+        "type": "(uint64,uint64)"
       }
     }
   ]

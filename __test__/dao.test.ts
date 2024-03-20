@@ -32,4 +32,20 @@ describe('Dao', () => {
     const proposalFromMethod = await appClient.getProposal({});
     expect(proposalFromMethod.return?.valueOf()).toBe(proposal);
   });
+
+  test('vote in favor & getVotesTotal', async () => {
+    await appClient.vote({
+      inFavor: true,
+    });
+    const votesAfter = await appClient.getVotesTotal({});
+    expect(votesAfter.return?.valueOf()).toEqual([BigInt(1), BigInt(1)]);
+  });
+
+  test('vote against & getVotesTotal', async () => {
+    await appClient.vote({
+      inFavor: false,
+    });
+    const votesAfter = await appClient.getVotesTotal({});
+    expect(votesAfter.return?.valueOf()).toEqual([BigInt(2), BigInt(1)]);
+  });
 });
