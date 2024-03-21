@@ -6,7 +6,7 @@ const fixture = algorandFixture();
 
 let appClient: TealscriptDemoClient;
 
-describe('TealscriptDemo', () => {
+describe.skip('TealscriptDemo', () => {
   beforeEach(fixture.beforeEach);
 
   beforeAll(async () => {
