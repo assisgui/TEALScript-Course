@@ -16,6 +16,8 @@ class Dao extends Contract {
     this.proposal.value = proposal;
   }
 
+  optInToApplication(): void {}
+
   getProposal(): string {
     return this.proposal.value;
   }
@@ -37,6 +39,26 @@ class Dao extends Contract {
     return this.registeredAsa.value;
   }
 
+  // Register method that gives the person the ASA and then freezes it
+  // registeredAsaP is needed to tell ledger that the asset will be used in this method
+  // without it, the ledger will not allow the asset to be used in this method
+  register(registeredAsaP: Asset): void {
+    assert(registeredAsaP.id === this.registeredAsa.value.id);
+    assert(this.txn.sender.assetBalance(this.registeredAsa.value) === 0);
+
+    sendAssetTransfer({
+      xferAsset: this.registeredAsa.value,
+      assetReceiver: this.txn.sender,
+      assetAmount: 1,
+    });
+
+    sendAssetFreeze({
+      freezeAsset: this.registeredAsa.value,
+      freezeAssetAccount: this.txn.sender,
+      freezeAssetFrozen: true,
+    });
+  }
+
   vote(inFavor: boolean): void {
     this.votesTotal.value += 1;
 
@@ -44,8 +66,12 @@ class Dao extends Contract {
       this.votesInFavor.value += 1;
     }
 
-    // assert(!this.alreadyVote(this.txn.sender).exists);
-    // this.alreadyVote(this.txn.sender).value = 1;
+    assert(!this.alreadyVote(this.txn.sender).exists);
+    this.alreadyVote(this.txn.sender).value = 1;
+  }
+
+  getAppId(): number {
+    return this.app.id;
   }
 
   getVotesTotal(): [number, number] {
@@ -56,7 +82,7 @@ class Dao extends Contract {
     return this.registeredAsa.value;
   }
 
-  get getAlreadyVote(): number {
+  getAlreadyVote(): number {
     return this.alreadyVote(this.txn.sender).value;
   }
 }

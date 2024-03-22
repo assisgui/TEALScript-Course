@@ -1,7 +1,18 @@
 import { describe, test, expect, beforeAll, beforeEach } from '@jest/globals';
 import { algorandFixture } from '@algorandfoundation/algokit-utils/testing';
-import { algos, getOrCreateKmdWalletAccount, microAlgos } from '@algorandfoundation/algokit-utils';
-import { Account } from 'algosdk';
+import {
+  algos,
+  getOrCreateKmdWalletAccount,
+  getTransactionParams,
+  microAlgos,
+  sendTransaction,
+} from '@algorandfoundation/algokit-utils';
+import {
+  Account,
+  Algodv2,
+  makeApplicationOptInTxnFromObject,
+  makeAssetTransferTxnWithSuggestedParamsFromObject,
+} from 'algosdk';
 import { DaoClient } from '../contracts/clients/Dao';
 
 const fixture = algorandFixture();
@@ -13,10 +24,14 @@ describe('Dao', () => {
   const proposal = 'This is a proposal.';
   let registeredAsa: bigint;
   let sender: Account;
+  let sender2: Account;
+  let algod: Algodv2;
 
   beforeAll(async () => {
     await fixture.beforeEach();
-    const { algod, testAccount, kmd } = fixture.context;
+    const { testAccount, kmd } = fixture.context;
+    algod = fixture.context.algod;
+
     sender = await getOrCreateKmdWalletAccount(
       {
         name: 'tealscript-dao-sender',
@@ -25,6 +40,16 @@ describe('Dao', () => {
       algod,
       kmd
     );
+    console.log('sender', sender.addr);
+    sender2 = await getOrCreateKmdWalletAccount(
+      {
+        name: 'tealscript-dao-sender2',
+        fundWith: algos(10),
+      },
+      algod,
+      kmd
+    );
+    console.log('sender2', sender2.addr);
 
     appClient = new DaoClient(
       {
@@ -69,6 +94,39 @@ describe('Dao', () => {
     expect(registeredASAFromMethod.return?.valueOf()).toBe(registeredAsa);
   });
 
+  test('register', async () => {
+    try {
+      const registeredAsaOptInTxn = makeAssetTransferTxnWithSuggestedParamsFromObject({
+        from: sender.addr,
+        to: sender.addr,
+        amount: 0,
+        suggestedParams: await getTransactionParams(undefined, algod),
+        assetIndex: Number(registeredAsa),
+      });
+
+      await sendTransaction(
+        {
+          from: sender,
+          transaction: registeredAsaOptInTxn,
+        },
+        algod
+      );
+
+      await appClient.register(
+        { registeredAsaP: registeredAsa },
+        {
+          sender,
+          sendParams: {
+            fee: microAlgos(3_000),
+          },
+        }
+      );
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  });
+
   test('bootstrap (Negative)', async () => {
     await expect(
       appClient.bootstrap(
@@ -84,18 +142,66 @@ describe('Dao', () => {
   });
 
   test('vote in favor & getVotesTotal & getAlreadyVote', async () => {
-    await appClient.vote({
-      inFavor: true,
-    });
+    // Opt-in to the application
+    const optMth = appClient.optIn;
+    await optMth.optInToApplication({}, { sender });
+
+    // Vote in favor and adding local state
+    await appClient.vote(
+      {
+        inFavor: true,
+      },
+      {
+        sender,
+      }
+    );
     const votesAfter = await appClient.getVotesTotal({});
     expect(votesAfter.return?.valueOf()).toEqual([BigInt(1), BigInt(1)]);
+
+    const alreadyVote = await appClient.getAlreadyVote(
+      {},
+      {
+        sender,
+      }
+    );
+    expect(alreadyVote.return?.valueOf()).toEqual(BigInt(1));
+  });
+
+  test('should not allow voting twice', async () => {
+    await expect(
+      appClient.vote(
+        {
+          inFavor: true,
+        },
+        {
+          sender,
+        }
+      )
+    ).rejects.toThrow();
   });
 
   test('vote against & getVotesTotal', async () => {
-    await appClient.vote({
-      inFavor: false,
-    });
+    // Opt-in to the application
+    const optMth = appClient.optIn;
+    await optMth.optInToApplication({}, { sender: sender2 });
+
+    await appClient.vote(
+      {
+        inFavor: false,
+      },
+      {
+        sender: sender2,
+      }
+    );
     const votesAfter = await appClient.getVotesTotal({});
     expect(votesAfter.return?.valueOf()).toEqual([BigInt(2), BigInt(1)]);
+
+    const alreadyVote = await appClient.getAlreadyVote(
+      {},
+      {
+        sender: sender2,
+      }
+    );
+    expect(alreadyVote.return?.valueOf()).toEqual(BigInt(1));
   });
 });

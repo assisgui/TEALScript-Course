@@ -15,6 +15,13 @@
       }
     },
     {
+      "name": "optInToApplication",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
       "name": "getProposal",
       "args": [],
       "returns": {
@@ -26,6 +33,18 @@
       "args": [],
       "returns": {
         "type": "uint64"
+      }
+    },
+    {
+      "name": "register",
+      "args": [
+        {
+          "name": "registeredAsaP",
+          "type": "asset"
+        }
+      ],
+      "returns": {
+        "type": "void"
       }
     },
     {
@@ -41,6 +60,13 @@
       }
     },
     {
+      "name": "getAppId",
+      "args": [],
+      "returns": {
+        "type": "uint64"
+      }
+    },
+    {
       "name": "getVotesTotal",
       "args": [],
       "returns": {
@@ -49,6 +75,13 @@
     },
     {
       "name": "getRegisteredAsa",
+      "args": [],
+      "returns": {
+        "type": "uint64"
+      }
+    },
+    {
+      "name": "getAlreadyVote",
       "args": [],
       "returns": {
         "type": "uint64"
